@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="Calculate your carbon footprint and discover actionable ways to reduce your environmental impact."/>
+<title>EcoTrack — Carbon Footprint Awareness Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0a1a0c;--surface:#111f13;--surface2:#182b1a;--surface3:#1e3521;
+  --border:#253d28;--accent:#4ade80;--accent2:#22c55e;--glow:rgba(74,222,128,0.18);
+  --text:#edfaef;--text2:#8cb894;--text3:#4d7a52;
+  --red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;--pink:#f472b6;
+  --ff:'Space Grotesk',sans-serif;--fb:'Inter',sans-serif;
+  --r:14px;--rl:22px;--tr:.2s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent2)}
+
+a{color:var(--accent);text-decoration:none}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;width:3px;height:3px;background:var(--accent);border-radius:50%;opacity:0;animation:float linear infinite}
+@keyframes float{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:.4}90%{opacity:.2}100%{transform:translateY(-10vh) translateX(var(--dx));opacity:0}}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,26,12,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:var(--ff);font-weight:700;font-size:1.2rem;color:var(--accent);display:flex;align-items:center;gap:.5rem}
+.brand-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--glow)}50%{box-shadow:0 0 0 8px transparent}}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--text2);font-size:.88rem;font-weight:500;transition:color var(--tr)}
+.nav-links a:hover{color:var(--accent)}
+
+/* ── HERO ── */
+.hero{min-height:92vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;position:relative;z-index:1}
+.hero-inner{max-width:760px}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:.4rem 1rem;font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem}
+.hero h1{font-family:var(--ff);font-size:clamp(2.2rem,6vw,4rem);font-weight:700;line-height:1.05;margin-bottom:1.25rem}
+.hero h1 .highlight{color:var(--accent);position:relative}
+.hero h1 .highlight::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:3px;background:var(--accent);border-radius:2px;animation:underline-grow .8s .5s ease both}
+@keyframes underline-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.hero-sub{color:var(--text2);font-size:1.1rem;max-width:540px;margin:0 auto 2.5rem}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+/* live counter in hero */
+.live-counter{display:flex;gap:2rem;justify-content:center;margin-top:3rem;flex-wrap:wrap}
+.counter-item{text-align:center}
+.counter-num{font-family:var(--ff);font-size:2rem;font-weight:700;color:var(--accent);display:block}
+.counter-label{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.75rem;border-radius:var(--r);font-family:var(--ff);font-weight:600;font-size:.95rem;cursor:pointer;transition:all var(--tr);border:none;text-decoration:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:#86efac;transform:translateY(-2px);box-shadow:0 12px 28px rgba(74,222,128,.35)}
+.btn-ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn-ghost:hover{background:var(--glow)}
+.btn-sm{padding:.5rem 1rem;font-size:.82rem}
+
+/* ── SECTION ── */
+.section{max-width:1100px;margin:0 auto;padding:5rem 2rem;position:relative;z-index:1}
+.section+.section{border-top:1px solid var(--border)}
+.section-label{font-size:.75rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+.section-title{font-family:var(--ff);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;margin-bottom:.6rem}
+.section-sub{color:var(--text2);font-size:1rem;margin-bottom:3rem}
+
+/* ── PROGRESS STEPS ── */
+.steps{display:flex;gap:0;margin-bottom:3rem;position:relative}
+.steps::before{content:'';position:absolute;top:20px;left:10%;right:10%;height:2px;background:var(--border);z-index:0}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:.5rem;position:relative;z-index:1}
+.step-dot{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .3s ease}
+.step.active .step-dot{border-color:var(--accent);background:var(--accent);color:var(--bg)}
+.step.done .step-dot{border-color:var(--accent2);background:var(--accent2);color:var(--bg)}
+.step-label{font-size:.72rem;color:var(--text3);font-weight:500;text-align:center}
+.step.active .step-label{color:var(--accent)}
+
+/* ── CALCULATOR PANELS ── */
+.calc-panel{display:none;animation:fadeIn .3s ease}
+.calc-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SLIDERS ── */
+.slider-group{margin-bottom:2rem}
+.slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.slider-label{font-size:.88rem;font-weight:500;color:var(--text2)}
+.slider-value{font-family:var(--ff);font-size:1.1rem;font-weight:700;color:var(--accent);background:var(--surface2);border:1px solid var(--border);padding:.2rem .7rem;border-radius:8px;min-width:80px;text-align:center}
+.slider-track{position:relative;height:6px;background:var(--surface2);border-radius:3px;margin-bottom:.4rem}
+.slider-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:3px;transition:width .1s}
+input[type=range]{width:100%;height:6px;appearance:none;background:transparent;cursor:pointer;position:relative;z-index:1}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;background:var(--accent);border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--accent);transition:transform var(--tr)}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+input[type=range]::-webkit-slider-runnable-track{background:transparent;height:6px}
+.slider-ticks{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3);margin-top:.25rem}
+
+/* ── SELECT CARDS ── */
+.select-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;margin-bottom:2rem}
+.select-card{background:var(--surface2);border:2px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all var(--tr);text-align:center}
+.select-card:hover{border-color:var(--text3)}
+.select-card.selected{border-color:var(--accent);background:var(--glow)}
+.select-card .card-icon{font-size:1.8rem;display:block;margin-bottom:.4rem}
+.select-card .card-label{font-size:.8rem;font-weight:600;color:var(--text2)}
+.select-card.selected .card-label{color:var(--accent)}
+
+/* ── LIVE PREVIEW BAR ── */
+.live-preview{position:sticky;bottom:1.5rem;z-index:50;margin-top:2rem}
+.preview-bar{background:var(--surface2);border:1.5px solid var(--border);border-radius:100px;padding:.75rem 1.5rem;display:flex;align-items:center;gap:1.5rem;max-width:600px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.5);backdrop-filter:blur(12px)}
+.preview-label{font-size:.78rem;color:var(--text3);white-space:nowrap}
+.preview-num{font-family:var(--ff);font-size:1.4rem;font-weight:700;color:var(--accent)}
+.preview-unit{font-size:.72rem;color:var(--text3)}
+.preview-bar-fill{flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.preview-bar-inner{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:3px;transition:width .5s ease}
+.preview-categories{display:flex;gap:.5rem;flex-wrap:wrap}
+.preview-cat{font-size:.7rem;background:var(--surface);border-radius:100px;padding:.2rem .6rem;color:var(--text2)}
+
+/* ── RESULTS ── */
+.results-hero{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);padding:3rem;text-align:center;margin-bottom:2rem;position:relative;overflow:hidden}
+.results-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -20%,rgba(74,222,128,.08),transparent 70%)}
+.results-total{font-family:var(--ff);font-size:5rem;font-weight:700;color:var(--accent);line-height:1;margin-bottom:.25rem}
+.results-grade{display:inline-block;font-family:var(--ff);font-size:1.1rem;font-weight:700;padding:.4rem 1.25rem;border-radius:100px;margin-bottom:1rem}
+.results-message{color:var(--text2);max-width:480px;margin:0 auto 2rem}
+.result-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.result-cat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.25rem;text-align:center;transition:border-color var(--tr)}
+.result-cat-card:hover{border-color:var(--accent)}
+.result-cat-icon{font-size:1.5rem;display:block;margin-bottom:.4rem}
+.result-cat-val{font-family:var(--ff);font-size:1.5rem;font-weight:700;color:var(--accent)}
+.result-cat-name{font-size:.75rem;color:var(--text3);margin-top:.2rem}
+.result-cat-bar{height:4px;background:var(--surface2);border-radius:2px;margin-top:.75rem;overflow:hidden}
+.result-cat-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* charts row */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+.chart-box{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem}
+.chart-box h3{font-family:var(--ff);font-size:.95rem;color:var(--text2);margin-bottom:1.25rem}
+
+/* world comparison */
+.world-compare{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:2rem}
+.world-compare h3{font-family:var(--ff);font-size:.95rem;color:var(--text2);margin-bottom:1.5rem}
+.compare-rows{display:flex;flex-direction:column;gap:.85rem}
+.compare-row{display:grid;grid-template-columns:130px 1fr 60px;gap:1rem;align-items:center}
+.compare-name{font-size:.82rem;color:var(--text2)}
+.compare-track{background:var(--surface2);border-radius:3px;height:10px;overflow:hidden}
+.compare-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.compare-val{font-family:var(--ff);font-size:.88rem;font-weight:600;text-align:right}
+
+/* ── TIPS ── */
+.tips-filters{display:flex;gap:.5rem;margin-bottom:2rem;flex-wrap:wrap}
+.filter-pill{padding:.45rem 1rem;border-radius:100px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-size:.82rem;font-weight:500;cursor:pointer;transition:all var(--tr)}
+.filter-pill:hover{border-color:var(--accent);color:var(--accent)}
+.filter-pill.active{background:var(--glow);border-color:var(--accent);color:var(--accent)}
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.tip-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;transition:all var(--tr);cursor:pointer;position:relative;overflow:hidden}
+.tip-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,var(--glow),transparent 60%);opacity:0;transition:opacity var(--tr)}
+.tip-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.tip-card:hover::before{opacity:1}
+.tip-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.tip-icon{font-size:2rem}
+.tip-saving{font-size:.72rem;font-weight:700;color:var(--accent);background:var(--glow);border-radius:100px;padding:.2rem .6rem;white-space:nowrap}
+.tip-title{font-family:var(--ff);font-weight:600;margin-bottom:.5rem}
+.tip-desc{font-size:.85rem;color:var(--text2);line-height:1.55}
+.tip-cat{display:inline-block;font-size:.7rem;color:var(--text3);margin-top:.75rem;text-transform:uppercase;letter-spacing:.08em}
+
+/* ── PLEDGE ── */
+.pledge-section{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);padding:3rem;text-align:center;margin-top:3rem}
+.pledge-title{font-family:var(--ff);font-size:1.6rem;font-weight:700;margin-bottom:.75rem}
+.pledge-sub{color:var(--text2);margin-bottom:2rem}
+.pledge-actions{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-bottom:2rem}
+.pledge-action{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:.75rem 1.25rem;cursor:pointer;transition:all var(--tr);display:flex;align-items:center;gap:.5rem;font-size:.88rem}
+.pledge-action:hover{border-color:var(--accent)}
+.pledge-action.pledged{border-color:var(--accent);background:var(--glow);color:var(--accent)}
+.pledge-count{font-family:var(--ff);font-size:2.5rem;font-weight:700;color:var(--accent);display:block}
+.pledge-count-label{font-size:.8rem;color:var(--text3)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1.5px solid var(--accent);border-radius:var(--r);padding:1rem 1.5rem;font-size:.88rem;z-index:1000;transform:translateY(100px);opacity:0;transition:all .3s ease;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── FOOTER ── */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:.8rem;color:var(--text3);position:relative;z-index:1}
+
+/* ── HIDDEN ── */
+.hidden{display:none!important}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .result-cards{grid-template-columns:1fr 1fr}
+  .charts-row{grid-template-columns:1fr}
+  .compare-row{grid-template-columns:100px 1fr 50px}
+  .nav-links{display:none}
+  .live-counter{gap:1rem}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="brand"><div class="brand-dot"></div>EcoTrack</div>
+  <ul class="nav-links">
+    <li><a href="#calculator">Calculator</a></li>
+    <li><a href="#results-section">Results</a></li>
+    <li><a href="#tips-section">Reduce</a></li>
+    <li><a href="#pledge-section">Pledge</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🌍 Carbon Awareness Platform</div>
+    <h1>How much CO₂ are <span class="highlight">you</span> adding<br>to our planet?</h1>
+    <p class="hero-sub">Most people underestimate their carbon footprint by 2–3×. Find out where you actually stand — then do something about it.</p>
+    <div class="hero-btns">
+      <a href="#calculator" class="btn btn-primary">🌿 Calculate My Footprint</a>
+      <a href="#tips-section" class="btn btn-ghost">See How to Reduce</a>
+    </div>
+    <div class="live-counter">
+      <div class="counter-item">
+        <span class="counter-num" id="counter-co2">0</span>
+        <span class="counter-label">tonnes CO₂ emitted today</span>
+      </div>
+      <div class="counter-item">
+        <span class="counter-num" id="counter-trees">0</span>
+        <span class="counter-label">trees needed to offset</span>
+      </div>
+      <div class="counter-item">
+        <span class="counter-num" id="counter-days">0</span>
+        <span class="counter-label">days until 1.5°C budget runs out</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CALCULATOR -->
+<div class="section" id="calculator">
+  <div class="section-label">Step by step</div>
+  <div class="section-title">Calculate Your Footprint</div>
+  <div class="section-sub">Move the sliders — your footprint updates live as you go.</div>
+
+  <!-- progress steps -->
+  <div class="steps" id="steps">
+    <div class="step active" data-step="0"><div class="step-dot">🚗</div><div class="step-label">Transport</div></div>
+    <div class="step" data-step="1"><div class="step-dot">🏠</div><div class="step-label">Home</div></div>
+    <div class="step" data-step="2"><div class="step-dot">🍽️</div><div class="step-label">Diet</div></div>
+    <div class="step" data-step="3"><div class="step-dot">🛍️</div><div class="step-label">Shopping</div></div>
+  </div>
+
+  <!-- TRANSPORT -->
+  <div class="calc-panel active" id="panel-0">
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🚗 Km driven per week</span>
+        <span class="slider-value" id="val-car-km">0 km</span>
+      </div>
+      <input type="range" id="car-km" min="0" max="1000" step="10" value="0" oninput="updateSlider('car-km','val-car-km',v=>v+' km')">
+      <div class="slider-ticks"><span>0</span><span>250</span><span>500</span><span>750</span><span>1000</span></div>
+    </div>
+    <div style="margin-bottom:2rem">
+      <div class="slider-label" style="margin-bottom:.75rem">🔋 Car type</div>
+      <div class="select-cards" id="car-type-cards">
+        <div class="select-card selected" data-val="petrol"><span class="card-icon">⛽</span><div class="card-label">Petrol</div></div>
+        <div class="select-card" data-val="diesel"><span class="card-icon">🛢️</span><div class="card-label">Diesel</div></div>
+        <div class="select-card" data-val="hybrid"><span class="card-icon">⚡</span><div class="card-label">Hybrid</div></div>
+        <div class="select-card" data-val="electric"><span class="card-icon">🔋</span><div class="card-label">Electric</div></div>
+        <div class="select-card" data-val="none"><span class="card-icon">🚶</span><div class="card-label">No car</div></div>
+      </div>
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">✈️ Short flights per year (&lt;3h)</span>
+        <span class="slider-value" id="val-flights-short">0</span>
+      </div>
+      <input type="range" id="flights-short" min="0" max="20" step="1" value="0" oninput="updateSlider('flights-short','val-flights-short',v=>v)">
+      <div class="slider-ticks"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div>
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🌍 Long flights per year (&gt;3h)</span>
+        <span class="slider-value" id="val-flights-long">0</span>
+      </div>
+      <input type="range" id="flights-long" min="0" max="10" step="1" value="0" oninput="updateSlider('flights-long','val-flights-long',v=>v)">
+      <div class="slider-ticks"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🚌 Public transport km/week</span>
+        <span class="slider-value" id="val-public">0 km</span>
+      </div>
+      <input type="range" id="public-transport" min="0" max="300" step="5" value="0" oninput="updateSlider('public-transport','val-public',v=>v+' km')">
+    </div>
+    <button class="btn btn-primary" onclick="goStep(1)">Next: Home Energy →</button>
+  </div>
+
+  <!-- HOME -->
+  <div class="calc-panel" id="panel-1">
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">⚡ Monthly electricity bill (₹)</span>
+        <span class="slider-value" id="val-electricity">₹500</span>
+      </div>
+      <input type="range" id="electricity" min="0" max="10000" step="100" value="500" oninput="updateSlider('electricity','val-electricity',v=>'₹'+v)">
+      <div class="slider-ticks"><span>₹0</span><span>₹2500</span><span>₹5000</span><span>₹7500</span><span>₹10k</span></div>
+    </div>
+    <div style="margin-bottom:2rem">
+      <div class="slider-label" style="margin-bottom:.75rem">☀️ Energy source</div>
+      <div class="select-cards" id="energy-source-cards">
+        <div class="select-card selected" data-val="grid"><span class="card-icon">🔌</span><div class="card-label">Grid</div></div>
+        <div class="select-card" data-val="solar"><span class="card-icon">☀️</span><div class="card-label">Solar (partial)</div></div>
+        <div class="select-card" data-val="renewable"><span class="card-icon">🌬️</span><div class="card-label">100% Renewable</div></div>
+      </div>
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">🔥 LPG cylinders per month</span>
+        <span class="slider-value" id="val-lpg">1</span>
+      </div>
+      <input type="range" id="lpg" min="0" max="8" step="0.5" value="1" oninput="updateSlider('lpg','val-lpg',v=>v)">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">👨‍👩‍👧 People in household</span>
+        <span class="slider-value" id="val-household">4</span>
+      </div>
+      <input type="range" id="household-size" min="1" max="10" step="1" value="4" oninput="updateSlider('household-size','val-household',v=>v)">
+    </div>
+    <div style="display:flex;gap:1rem">
+      <button class="btn btn-ghost" onclick="goStep(0)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(2)">Next: Diet →</button>
+    </div>
+  </div>
+
+  <!-- DIET -->
+  <div class="calc-panel" id="panel-2">
+    <div style="margin-bottom:2rem">
+      <div class="slider-label" style="margin-bottom:.75rem">🍽️ Your diet type</div>
+      <div class="select-cards" id="diet-type-cards">
+        <div class="select-card" data-val="vegan"><span class="card-icon">🥦</span><div class="card-label">Vegan</div></div>
+        <div class="select-card" data-val="vegetarian"><span class="card-icon">🥗</span><div class="card-label">Vegetarian</div></div>
+        <div class="select-card" data-val="flexitarian"><span class="card-icon">🍳</span><div class="card-label">Flexitarian</div></div>
+        <div class="select-card selected" data-val="omnivore"><span class="card-icon">🍗</span><div class="card-label">Omnivore</div></div>
+        <div class="select-card" data-val="heavy-meat"><span class="card-icon">🥩</span><div class="card-label">Heavy meat</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:2rem">
+      <div class="slider-label" style="margin-bottom:.75rem">🗑️ How often do you waste food?</div>
+      <div class="select-cards" id="food-waste-cards">
+        <div class="select-card" data-val="rarely"><span class="card-icon">✅</span><div class="card-label">Rarely</div></div>
+        <div class="select-card selected" data-val="sometimes"><span class="card-icon">😐</span><div class="card-label">Sometimes</div></div>
+        <div class="select-card" data-val="often"><span class="card-icon">😬</span><div class="card-label">Often</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:2rem">
+      <div class="slider-label" style="margin-bottom:.75rem">🌾 Do you buy local/seasonal produce?</div>
+      <div class="select-cards" id="local-food-cards">
+        <div class="select-card" data-val="always"><span class="card-icon">🌿</span><div class="card-label">Always</div></div>
+        <div class="select-card selected" data-val="sometimes"><span class="card-icon">🛒</span><div class="card-label">Sometimes</div></div>
+        <div class="select-card" data-val="rarely"><span class="card-icon">🏪</span><div class="card-label">Rarely</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:1rem">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next: Shopping →</button>
+    </div>
+  </div>
+
+  <!-- SHOPPING -->
+  <div class="calc-panel" id="panel-3">
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">👗 New clothing items per month</span>
+        <span class="slider-value" id="val-clothes">2</span>
+      </div>
+      <input type="range" id="new-clothes" min="0" max="20" step="1" value="2" oninput="updateSlider('new-clothes','val-clothes',v=>v)">
+      <div class="slider-ticks"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div>
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">💻 New electronics per year</span>
+        <span class="slider-value" id="val-electronics">1</span>
+      </div>
+      <input type="range" id="electronics" min="0" max="10" step="1" value="1" oninput="updateSlider('electronics','val-electronics',v=>v)">
+    </div>
+    <div class="slider-group">
+      <div class="slider-header">
+        <span class="slider-label">📦 Online orders per month</span>
+        <span class="slider-value" id="val-orders">3</span>
+      </div>
+      <input type="range" id="online-orders" min="0" max="30" step="1" value="3" oninput="updateSlider('online-orders','val-orders',v=>v)">
+    </div>
+    <div style="display:flex;gap:1rem">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="showResults()">🌿 Show My Results →</button>
+    </div>
+  </div>
+
+  <!-- LIVE PREVIEW BAR -->
+  <div class="live-preview">
+    <div class="preview-bar">
+      <span class="preview-label">Live estimate</span>
+      <div>
+        <span class="preview-num" id="live-num">–</span>
+        <span class="preview-unit"> t CO₂e/yr</span>
+      </div>
+      <div class="preview-bar-fill">
+        <div class="preview-bar-inner" id="live-bar" style="width:0%"></div>
+      </div>
+      <div class="preview-categories" id="live-cats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="section hidden" id="results-section">
+  <div class="section-label">Your impact</div>
+  <div class="section-title">Carbon Footprint Results</div>
+
+  <div class="results-hero">
+    <div class="results-grade" id="results-grade"></div>
+    <div class="results-total" id="results-total">–</div>
+    <div style="color:var(--text2);font-size:.9rem;margin-bottom:.5rem">tonnes CO₂e per year</div>
+    <div class="results-message" id="results-message"></div>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="#tips-section" class="btn btn-primary">🌱 See How to Reduce</a>
+      <button class="btn btn-ghost" onclick="recalculate()">Recalculate</button>
+    </div>
+  </div>
+
+  <div class="result-cards" id="result-cards"></div>
+
+  <div class="charts-row">
+    <div class="chart-box">
+      <h3>Breakdown by category</h3>
+      <canvas id="donut-chart" width="300" height="300"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>Monthly trend (simulated)</h3>
+      <canvas id="bar-chart" width="300" height="300"></canvas>
+    </div>
+  </div>
+
+  <div class="world-compare">
+    <h3>How you compare to the world 🌍</h3>
+    <div class="compare-rows" id="compare-rows"></div>
+  </div>
+</div>
+
+<!-- TIPS -->
+<div class="section" id="tips-section">
+  <div class="section-label">Take action</div>
+  <div class="section-title">Ways to Reduce Your Footprint</div>
+  <div class="section-sub">Click any tip to mark it as your goal.</div>
+  <div class="tips-filters">
+    <button class="filter-pill active" data-filter="all">All</button>
+    <button class="filter-pill" data-filter="transport">🚗 Transport</button>
+    <button class="filter-pill" data-filter="home">🏠 Home</button>
+    <button class="filter-pill" data-filter="food">🍽️ Diet</button>
+    <button class="filter-pill" data-filter="shopping">🛍️ Shopping</button>
+  </div>
+  <div class="tips-grid" id="tips-grid"></div>
+</div>
+
+<!-- PLEDGE -->
+<div class="section" id="pledge-section">
+  <div class="pledge-section">
+    <div class="pledge-title">🌱 Take the Green Pledge</div>
+    <div class="pledge-sub">Pick actions you commit to. Every choice matters.</div>
+    <div class="pledge-actions" id="pledge-actions"></div>
+    <div>
+      <span class="pledge-count" id="pledge-count">0</span>
+      <span class="pledge-count-label">pledges made this session</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  🌍 EcoTrack — Carbon Footprint Awareness Platform &nbsp;|&nbsp; Built for Hack2Skill × Google for Developers &nbsp;|&nbsp; Data: IPCC AR6 & CEA 2023
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ── EMISSION FACTORS ──────────────────────────────────────────────────────────
+const EF = {
+  car: {petrol:.21,diesel:.17,hybrid:.11,electric:.05,none:0},
+  flightShort: 0.255, flightShortKm: 800,
+  flightLong: 0.195,  flightLongKm: 5000,
+  publicKm: 0.089,
+  elecPerRupee: 0.00082,
+  energySrc: {grid:1,solar:.4,renewable:.05},
+  lpg: 0.0629,
+  diet: {vegan:1.5,vegetarian:1.7,flexitarian:2.5,omnivore:3.3,'heavy-meat':4.5},
+  waste: {rarely:1.0,sometimes:1.1,often:1.25},
+  local: {always:.9,sometimes:1.0,rarely:1.05},
+  clothes: 0.025,
+  electronics: 0.3,
+  orders: 0.008
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let state = {
+  'car-km':0,'car-type':'petrol','flights-short':0,'flights-long':0,'public-transport':0,
+  electricity:500,'energy-source':'grid',lpg:1,'household-size':4,
+  'diet-type':'omnivore','food-waste':'sometimes','local-food':'sometimes',
+  'new-clothes':2,electronics:1,'online-orders':3
+};
+let charts = {};
+let currentStep = 0;
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<25;i++){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.cssText=`left:${Math.random()*100}%;--dx:${(Math.random()-0.5)*200}px;animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*10}s;width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;opacity:.3`;
+    c.appendChild(p);
+  }
+})();
+
+// ── LIVE COUNTERS (hero) ──────────────────────────────────────────────────────
+(function(){
+  const startCO2 = 127000000;
+  const startTrees = startCO2 * 45;
+  const startDays = 3200;
+  const ratePerMs = 1320; // ~114M tonnes/day global CO2
+  const t0 = Date.now();
+  function tick(){
+    const elapsed = (Date.now()-t0)/1000;
+    animNum('counter-co2', Math.round(startCO2 + elapsed*ratePerMs/1000));
+    animNum('counter-trees', Math.round((startCO2 + elapsed*ratePerMs/1000)*45));
+    document.getElementById('counter-days').textContent = (startDays - Math.floor(elapsed/86400)).toLocaleString();
+    setTimeout(tick, 1000);
+  }
+  tick();
+  function animNum(id, val){
+    const el=document.getElementById(id);
+    if(el) el.textContent=val.toLocaleString();
+  }
+})();
+
+// ── CALCULATE ────────────────────────────────────────────────────────────────
+function calculate(){
+  const s = state;
+  const transport =
+    (s['car-km']*52*(EF.car[s['car-type']]||0))/1000 +
+    (s['flights-short']*EF.flightShortKm*EF.flightShort)/1000 +
+    (s['flights-long']*EF.flightLongKm*EF.flightLong)/1000 +
+    (s['public-transport']*52*EF.publicKm)/1000;
+  const hh = Math.max(1,s['household-size']);
+  const home =
+    (s.electricity*12*EF.elecPerRupee*(EF.energySrc[s['energy-source']]||1))/hh +
+    (s.lpg*12*EF.lpg)/hh;
+  const food = (EF.diet[s['diet-type']]||2.5)*(EF.waste[s['food-waste']]||1)*(EF.local[s['local-food']]||1);
+  const shopping = s['new-clothes']*12*EF.clothes + s.electronics*EF.electronics + s['online-orders']*12*EF.orders;
+  const r = v=>Math.round(v*100)/100;
+  return {transport:r(transport),home:r(home),food:r(food),shopping:r(shopping),total:r(transport+home+food+shopping)};
+}
+
+// ── LIVE PREVIEW ─────────────────────────────────────────────────────────────
+function updateLive(){
+  const d=calculate();
+  const el=document.getElementById('live-num');
+  const bar=document.getElementById('live-bar');
+  const cats=document.getElementById('live-cats');
+  if(el) el.textContent=d.total.toFixed(1);
+  if(bar) bar.style.width=Math.min(100,(d.total/12)*100)+'%';
+  if(cats) cats.innerHTML=
+    `<span class="preview-cat">🚗${d.transport.toFixed(1)}t</span>`+
+    `<span class="preview-cat">🏠${d.home.toFixed(1)}t</span>`+
+    `<span class="preview-cat">🍽️${d.food.toFixed(1)}t</span>`+
+    `<span class="preview-cat">🛍️${d.shopping.toFixed(1)}t</span>`;
+}
+
+// ── SLIDER UPDATE ─────────────────────────────────────────────────────────────
+function updateSlider(id,valId,fmt){
+  const v=parseFloat(document.getElementById(id).value);
+  state[id]=v;
+  const el=document.getElementById(valId);
+  if(el) el.textContent=fmt(v);
+  updateLive();
+}
+
+// ── SELECT CARDS ──────────────────────────────────────────────────────────────
+function initSelectCards(){
+  document.querySelectorAll('.select-cards').forEach(group=>{
+    const stateKey=group.id.replace('-cards','');
+    group.querySelectorAll('.select-card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        group.querySelectorAll('.select-card').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+        state[stateKey]=card.dataset.val;
+        updateLive();
+      });
+    });
+  });
+}
+
+// ── STEPS ────────────────────────────────────────────────────────────────────
+function goStep(n){
+  document.querySelectorAll('.calc-panel').forEach((p,i)=>{
+    p.classList.toggle('active',i===n);
+  });
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('active',i===n);
+    s.classList.toggle('done',i<n);
+  });
+  currentStep=n;
+  document.getElementById('calculator').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── GRADE ─────────────────────────────────────────────────────────────────────
+function getGrade(t){
+  if(t<1.5) return{grade:'A+',msg:'Outstanding! Well below the sustainable target of 2t.',color:'#4ade80',bg:'rgba(74,222,128,.15)'};
+  if(t<2.5) return{grade:'A',msg:'Excellent! Near the 2050 sustainable target.',color:'#4ade80',bg:'rgba(74,222,128,.12)'};
+  if(t<3.5) return{grade:'B',msg:'Good. Below the global average — room to improve.',color:'#86efac',bg:'rgba(134,239,172,.12)'};
+  if(t<5)   return{grade:'C',msg:'Average. A few lifestyle changes would help significantly.',color:'#fbbf24',bg:'rgba(251,191,36,.12)'};
+  if(t<8)   return{grade:'D',msg:'Above average. Focus on your highest-impact categories.',color:'#fb923c',bg:'rgba(251,146,60,.12)'};
+  return{grade:'F',msg:'High impact. Immediate action across multiple areas is needed.',color:'#f87171',bg:'rgba(248,113,113,.12)'};
+}
+
+// ── SHOW RESULTS ──────────────────────────────────────────────────────────────
+function showResults(){
+  const d = calculate();
+  const g = getGrade(d.total);
+
+  // show section
+  document.getElementById('results-section').classList.remove('hidden');
+  document.getElementById('results-section').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // grade & total
+  const gradeEl=document.getElementById('results-grade');
+  gradeEl.textContent=`Grade: ${g.grade}`;
+  gradeEl.style.background=g.bg;
+  gradeEl.style.color=g.color;
+  gradeEl.style.border=`1.5px solid ${g.color}`;
+
+  // animate total number
+  const totalEl=document.getElementById('results-total');
+  let start=0; const end=d.total;
+  const dur=1200; const t0=performance.now();
+  function tick(now){
+    const p=Math.min(1,(now-t0)/dur);
+    const ease=1-Math.pow(1-p,3);
+    totalEl.textContent=(start+(end-start)*ease).toFixed(2);
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  document.getElementById('results-message').textContent=g.msg;
+
+  // category cards
+  const cats=[
+    {icon:'🚗',name:'Transport',val:d.transport,color:'#4ade80'},
+    {icon:'🏠',name:'Home',val:d.home,color:'#60a5fa'},
+    {icon:'🍽️',name:'Diet',val:d.food,color:'#fbbf24'},
+    {icon:'🛍️',name:'Shopping',val:d.shopping,color:'#f472b6'}
+  ];
+  const maxCat=Math.max(...cats.map(c=>c.val),0.1);
+  document.getElementById('result-cards').innerHTML=cats.map(c=>`
+    <div class="result-cat-card">
+      <span class="result-cat-icon">${c.icon}</span>
+      <div class="result-cat-val" style="color:${c.color}">${c.val.toFixed(2)}t</div>
+      <div class="result-cat-name">${c.name}</div>
+      <div class="result-cat-bar"><div class="result-cat-bar-fill" style="background:${c.color};width:${Math.round((c.val/maxCat)*100)}%"></div></div>
+    </div>`).join('');
+
+  // donut chart
+  if(charts.donut) charts.donut.destroy();
+  charts.donut=new Chart(document.getElementById('donut-chart'),{
+    type:'doughnut',
+    data:{
+      labels:['Transport','Home','Diet','Shopping'],
+      datasets:[{data:[d.transport,d.home,d.food,d.shopping],backgroundColor:['#4ade80','#60a5fa','#fbbf24','#f472b6'],borderColor:'#111f13',borderWidth:3,hoverOffset:10}]
+    },
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8cb894',padding:12,font:{size:12}}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw.toFixed(2)}t CO₂e`}}},cutout:'62%'}
+  });
+
+  // bar chart (monthly with slight variation)
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthlyBase=d.total/12;
+  const monthlyData=months.map((_,i)=>parseFloat((monthlyBase*(0.85+Math.sin(i)*0.15+Math.random()*0.1)).toFixed(2)));
+  if(charts.bar) charts.bar.destroy();
+  charts.bar=new Chart(document.getElementById('bar-chart'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[{label:'Monthly CO₂e (t)',data:monthlyData,backgroundColor:'rgba(74,222,128,.3)',borderColor:'#4ade80',borderWidth:1.5,borderRadius:6}]
+    },
+    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}t CO₂e`}}},scales:{x:{ticks:{color:'#4d7a52',font:{size:10}},grid:{color:'#253d28'}},y:{ticks:{color:'#4d7a52'},grid:{color:'#253d28'}}}}
+  });
+
+  // world comparison
+  const comparisons=[
+    {name:'You 🙋',val:d.total,color:'#4ade80'},
+    {name:'India avg',val:1.9,color:'#60a5fa'},
+    {name:'Global avg',val:4.0,color:'#fbbf24'},
+    {name:'USA avg',val:14.5,color:'#f87171'},
+    {name:'2050 target',val:2.0,color:'#34d399'},
+    {name:'EU avg',val:6.4,color:'#c084fc'}
+  ];
+  const maxComp=Math.max(...comparisons.map(c=>c.val));
+  document.getElementById('compare-rows').innerHTML=comparisons.map(c=>`
+    <div class="compare-row">
+      <div class="compare-name">${c.name}</div>
+      <div class="compare-track"><div class="compare-fill" style="background:${c.color};width:${Math.round((c.val/maxComp)*100)}%"></div></div>
+      <div class="compare-val" style="color:${c.color}">${c.val}t</div>
+    </div>`).join('');
+
+  showToast('🌿 Results calculated! Scroll down to see tips.');
+}
+
+function recalculate(){
+  document.getElementById('results-section').classList.add('hidden');
+  document.getElementById('calculator').scrollIntoView({behavior:'smooth',block:'start'});
+  goStep(0);
+}
+
+// ── TIPS ─────────────────────────────────────────────────────────────────────
+const TIPS=[
+  {cat:'transport',icon:'🚌',title:'Switch to public transport',desc:'Taking the bus or metro instead of driving cuts transport emissions by up to 70% per trip.',save:'Save ~2.4t/yr'},
+  {cat:'transport',icon:'🚲',title:'Cycle for short trips',desc:'Trips under 5km account for 30% of car journeys. Cycling half of them makes a real dent.',save:'Save ~0.7t/yr'},
+  {cat:'transport',icon:'✈️',title:'Fly less, take trains',desc:'One long-haul flight can equal 2 months of other activity. Choose trains where possible.',save:'Save ~3t/flight'},
+  {cat:'transport',icon:'⚡',title:'Switch to an electric vehicle',desc:'EVs produce 60–70% fewer lifetime emissions vs petrol cars on the Indian grid.',save:'Save ~1.8t/yr'},
+  {cat:'home',icon:'☀️',title:'Install rooftop solar',desc:'A 2kW solar system offsets 60–80% of household electricity emissions.',save:'Save ~1.5t/yr'},
+  {cat:'home',icon:'💡',title:'Switch to LED lighting',desc:'LEDs use 75% less energy than incandescent bulbs and last 25× longer.',save:'Save ~0.2t/yr'},
+  {cat:'home',icon:'🌡️',title:'Set AC to 24°C',desc:'Every degree lower increases energy use by ~6%. 24°C is comfortable and efficient.',save:'Save ~0.3t/yr'},
+  {cat:'food',icon:'🥗',title:'Eat less meat',desc:'Beef produces 20× more emissions per gram of protein than lentils. One meat-free day/week helps.',save:'Save ~0.4t/yr'},
+  {cat:'food',icon:'🛒',title:'Buy local & seasonal',desc:'Out-of-season imported produce travels thousands of km. Local seasonal food cuts food miles.',save:'Save ~0.15t/yr'},
+  {cat:'food',icon:'🍱',title:'Reduce food waste',desc:'30% of food produced globally is wasted. Plan meals, store food properly, compost scraps.',save:'Save ~0.25t/yr'},
+  {cat:'shopping',icon:'👗',title:'Buy fewer, better clothes',desc:'Fast fashion is a major emitter. Buying half as many clothes & keeping them twice as long halves impact.',save:'Save ~0.5t/yr'},
+  {cat:'shopping',icon:'🔧',title:'Repair, don\'t replace electronics',desc:'Manufacturing a smartphone emits ~70kg CO₂e. Repair or buy refurbished.',save:'Save ~0.3t/device'},
+  {cat:'shopping',icon:'📦',title:'Batch your online orders',desc:'Last-mile delivery is emissions-intensive. Group orders instead of buying one item at a time.',save:'Save ~0.08t/yr'}
+];
+
+let savedTips=new Set();
+function renderTips(){
+  const grid=document.getElementById('tips-grid');
+  grid.innerHTML=TIPS.map((t,i)=>`
+    <div class="tip-card" data-cat="${t.cat}" data-i="${i}" onclick="toggleTip(${i},this)">
+      <div class="tip-top">
+        <span class="tip-icon">${t.icon}</span>
+        <span class="tip-saving">${t.save}</span>
+      </div>
+      <div class="tip-title">${t.title}</div>
+      <div class="tip-desc">${t.desc}</div>
+      <div class="tip-cat">${t.cat}</div>
+    </div>`).join('');
+}
+function toggleTip(i,el){
+  if(savedTips.has(i)){savedTips.delete(i);el.style.borderColor='';el.querySelector('.tip-saving').style.background=''}
+  else{savedTips.add(i);el.style.borderColor='var(--accent)';el.querySelector('.tip-saving').style.background='var(--accent)';el.querySelector('.tip-saving').style.color='var(--bg)';showToast('✅ Goal saved!')}
+}
+
+// filter pills
+document.querySelectorAll('.filter-pill').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f=btn.dataset.filter;
+    document.querySelectorAll('.tip-card').forEach(c=>{
+      c.style.display=(f==='all'||c.dataset.cat===f)?'':'none';
+    });
+  });
+});
+
+// ── PLEDGE ───────────────────────────────────────────────────────────────────
+const PLEDGES=[
+  '🚌 Use public transport',
+  '🌱 Eat plant-based twice a week',
+  '💡 Switch to LED bulbs',
+  '♻️ Recycle consistently',
+  '🛍️ No fast fashion this month',
+  '🚿 Shorter showers',
+  '☀️ Explore solar energy',
+  '✈️ Skip one flight this year',
+  '🌳 Plant a tree',
+  '📦 Batch online orders'
+];
+let pledgeCount=0;
+function renderPledges(){
+  const el=document.getElementById('pledge-actions');
+  el.innerHTML=PLEDGES.map((p,i)=>`
+    <button class="pledge-action" data-i="${i}" onclick="togglePledge(${i},this)">${p}</button>`).join('');
+}
+function togglePledge(i,el){
+  if(el.classList.toggle('pledged')){pledgeCount++;showToast('🌿 Pledge made! Every action counts.')}
+  else pledgeCount--;
+  document.getElementById('pledge-count').textContent=pledgeCount;
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+initSelectCards();
+renderTips();
+renderPledges();
+updateLive();
+</script>
+</body>
+</html>
