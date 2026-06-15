@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+  <title>EcoTrack — Test Suite</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Courier New',monospace;background:#0a1a0c;color:#edfaef;padding:2rem;line-height:1.75;min-height:100vh}
+    header{margin-bottom:1.5rem}
+    h1{color:#4ade80;font-size:1.4rem;margin-bottom:.25rem}
+    .sub{color:#4d7a52;font-size:.82rem}
+    #progress-wrap{background:#1c3020;border-radius:4px;height:8px;margin:1rem 0 1.5rem;overflow:hidden}
+    #bar{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:4px;width:0%;transition:width .6s ease}
+    .pass{color:#4ade80}
+    .fail{color:#f87171}
+    .section{color:#fbbf24;margin-top:1.25rem;font-weight:bold}
+    .dim{color:#4d7a52}
+    #summary{margin-top:1.5rem;padding:1rem 1.5rem;border-radius:8px;border:1.5px solid #253d28;font-size:.95rem}
+    .all-pass{border-color:#4ade80!important;background:rgba(74,222,128,.07)}
+    .has-fail{border-color:#f87171!important;background:rgba(248,113,113,.07)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌍 EcoTrack — Test Suite</h1>
+    <p class="sub">94 unit, integration, boundary, and regression tests</p>
+  </header>
+  <div id="progress-wrap"><div id="bar"></div></div>
+  <div id="output" role="log" aria-live="polite" aria-label="Test results"></div>
+  <div id="summary" class="summary" role="status" aria-live="polite">Running tests…</div>
+
+  <script src="../js/calculator.js"></script>
+  <script>
+    // Patch console.log to render in page
+    const out = document.getElementById('output');
+    const orig = console.log.bind(console);
+    console.log = function (...args) {
+      orig(...args);
+      const msg = args.join(' ');
+      const div = document.createElement('div');
+      div.textContent = msg;
+      if      (msg.includes('✅'))  div.className = 'pass';
+      else if (msg.includes('❌'))  div.className = 'fail';
+      else if (msg.match(/^[🔧🚗🏠🍽🛍🏆🔗📊]/u)) div.className = 'section';
+      else                           div.className = 'dim';
+      out.appendChild(div);
+    };
+  </script>
+  <script src="calculator.test.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (typeof RESULTS === 'undefined') return;
+        const total = RESULTS.passed + RESULTS.failed;
+        document.getElementById('bar').style.width = (RESULTS.passed / total * 100) + '%';
+        const s = document.getElementById('summary');
+        s.className = 'summary ' + (RESULTS.failed === 0 ? 'all-pass' : 'has-fail');
+        s.innerHTML = RESULTS.failed === 0
+          ? `<span class="pass">🎉 All ${RESULTS.passed} tests passed!</span>`
+          : `<span class="fail">❌ ${RESULTS.failed} failed</span> &nbsp;|&nbsp; <span class="pass">✅ ${RESULTS.passed} passed</span> &nbsp;|&nbsp; <span class="dim">Total: ${total}</span>`;
+      }, 300);
+    });
+  </script>
+</body>
+</html>
