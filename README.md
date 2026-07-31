@@ -14,7 +14,7 @@ A highly interactive, accessible, security-hardened, and comprehensively tested 
 
 ## 🚀 Live Demo
 
-🌐 **[View Live →](https://YOUR_USERNAME.github.io/carbon-footprint-platform)**
+🌐 **[View Live →](https://code-paul-creator.github.io/Carbon-Footprint-Awareness-Platform/)**
 
 Open `index.html` in any modern browser — no build step, no server, no installation required.
 
